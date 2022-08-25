@@ -12,25 +12,21 @@ This package describes working with writers and readers. Also it describes ho to
 */
 
 func main() {
-	reader := strings.NewReader(`
-{"Name":"Kayak","Category":"Watersports","Price":279}
-{"Name":"Lifejacket","Category":"Watersports" }
-{"name":"Canoe","category":"Watersports", "price": 100, "inStock": true }
-`)
+	reader := strings.NewReader(`{"Name":"Kayak","Category":"Watersports","Price":279, "Offer": "10"}`)
 	decoder := json.NewDecoder(reader)
+
 	for {
-		var val Product
+		val := DiscountedProduct{}
 		err := decoder.Decode(&val)
 		if err != nil {
 			if err != io.EOF {
 				Printfln("Error: %v", err.Error())
-				}
+			}
 			break
-			        } else {
-			            Printfln("Name: %v, Category: %v, Price: %v",
-			                val.Name, val.Category, val.Price)
-			        }
-		    }
+		} else {
+			Printfln("Name: %v, Category: %v, Price: %v, Discount: %v", val.Name, val.Category, val.Price, val.Discount)
+		}
+	}
 }
 
 func MakeMap[K comparable, V any](K, V) map[K]V {

@@ -12,6 +12,6 @@ func (p *Person) GetName() string {
 	return p.PersonName
 }
 
-func (p *DiscountedProduct) GetName() string {
-	return p.Name
+func (dp *DiscountedProduct) GetName() string {
+	return dp.Name
 }
