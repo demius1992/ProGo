@@ -8,8 +8,23 @@ import (
 )
 
 func main() {
-	r := regexp.MustCompile("p([a-z]*)")
-	fmt.Println(r.MatchString("peach"))
+	Mapping()
+	//r := regexp.MustCompile("p([a-z]*)")
+	//fmt.Println(r.MatchString("peach"))
+}
+
+func Mapping() {
+	text := "It was a boat. A small boat."
+	mapper := func(r rune) rune {
+		if r == 'b' {
+			return 'c'
+		} else if r == '.' {
+			return ':'
+		}
+		return r
+	}
+	mapped := strings.Map(mapper, text)
+	fmt.Println("Mapped:", mapped)
 }
 
 func replaceStringFunc() {
@@ -100,20 +115,6 @@ func newReplacer() {
 	replaced := replacer.Replace(text)
 
 	fmt.Println("Replaced:", replaced)
-}
-
-func Mapping() {
-	text := "It was a boat. A small boat."
-	mapper := func(r rune) rune {
-		if r == 'b' {
-			return 'c'
-		} else if r == '.' {
-			return ':'
-		}
-		return r
-	}
-	mapped := strings.Map(mapper, text)
-	fmt.Println("Mapped:", mapped)
 }
 
 func replaceString() {

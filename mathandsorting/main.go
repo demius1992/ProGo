@@ -10,15 +10,16 @@ import (
 )
 
 func main() {
-	//myGenerator(26)
-	generator()
+	start := time.Now()
+	//myGenerator(18)
+	//generator()
+	end := time.Now()
+	fmt.Println(end.Sub(start))
 }
 
 func generator() {
-	for i := 0; i < 10; i++ {
-		guid := xid.New()
-		println(guid.String())
-	}
+	guid := xid.New()
+	println(guid.String())
 }
 
 func myGenerator(length int) {
