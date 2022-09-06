@@ -13,11 +13,13 @@ type Node struct {
 }
 
 func main() {
-	//n := factorial(17)
-	//nMinusm := factorial(17 - 6)
-	//m := factorial(6)
-	//result := n / (m * nMinusm)
-	//fmt.Println(real(result))
+	n := factorial(17)
+	nMinusm := factorial(17 - 6)
+	m := factorial(6)
+
+	result := n / (m * nMinusm)
+
+	fmt.Println(real(result))
 
 	start := time.Now()
 	writeBuilder("q")

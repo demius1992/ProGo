@@ -1,8 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
-type Days int
+type Days time.Weekday
 
 const (
 	monday Days = iota + 1

@@ -11,7 +11,7 @@ import (
 
 func main() {
 	start := time.Now()
-	myGenerator(100)
+	myGenerator(20)
 	//generator()
 	end := time.Now()
 	fmt.Println(end.Sub(start))
