@@ -26,6 +26,8 @@ func hello(w http.ResponseWriter, req *http.Request) {
 	case 4:
 		w.WriteHeader(404)
 	}
+	//ErrorResponse(w, &myError{Msg: errors.New("no success StatusServiceUnavailable"), StatusCode: 503})
+	//log.Println("No success StatusServiceUnavailable 503")
 
 }
 

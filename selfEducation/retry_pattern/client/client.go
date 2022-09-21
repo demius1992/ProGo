@@ -1,11 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -19,65 +17,35 @@ func NewClient(url string) Client {
 
 func main() {
 	client := NewClient("http://localhost:8090/hello")
-	stop := make(chan string, 1)
+	//client := NewClient("https://fixer.io/")
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 
-	client.retryGet(client.url, stop)
+	retrier := NewRetrier(ctx, &client, Backoff{
+		Min:    100 * time.Millisecond,
+		Max:    10 * time.Second,
+		Factor: 2,
+		Jitter: false,
+	})
 
-	responce := <-stop
-
+	responce, err := retrier.Run(client.url)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	fmt.Println(responce)
 }
 
-func (c Client) retryGet(url string, stop chan string) {
-	counter := 1
-
-	go func() {
-		for {
-		start:
-			resp, err := http.Get(url)
-			if err != nil {
-				log.Fatalln("error is not nil", err)
-			}
-
-			if resp.StatusCode == http.StatusServiceUnavailable {
-				fmt.Printf("Failed to connect server, no success StatusServiceUnavailable. Responce status: %d, here we go again\n",
-					resp.StatusCode)
-
-				time.Sleep(time.Second * time.Duration(counter))
-				counter++
-				goto start
-
-			} else if resp.StatusCode == http.StatusLoopDetected {
-				fmt.Printf("Failed to connect server, no success StatusLoopDetected. Responce status: %d, here we go again\n",
-					resp.StatusCode)
-
-				time.Sleep(time.Second * time.Duration(counter))
-				counter++
-				goto start
-
-			} else if resp.StatusCode == http.StatusOK {
-				fmt.Println("Response status:", resp.Status)
-
-				out, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					log.Fatalln(errors.Wrap(err, "unable to read response data"))
-				}
-
-				defer resp.Body.Close()
-				stop <- string(out)
-				return
-
-			} else {
-				fmt.Printf("unexpected behavior: %s, let's try to reconnect\n", resp.Status)
-				time.Sleep(time.Second * time.Duration(counter))
-				counter++
-				goto start
-			}
-		}
-	}()
-
-	go func() {
-		time.Sleep(time.Second * 10)
-		stop <- "request time out"
-	}()
+func (c *Client) Validate(resp interface{}) Action {
+	res, ok := resp.(int)
+	if !ok {
+		log.Println("invalid status code")
+		return Fail
+	}
+	switch {
+	case res >= 200 && res <= 226:
+		return Succeed
+	case res >= 400 && res <= 451:
+		return Fail
+	default:
+		return Retry
+	}
 }
