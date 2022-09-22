@@ -24,37 +24,42 @@ func main() {
 	//url := "https://fixer.io/"
 	url := "http://localhost:8090/hello"
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
 	defer cancel()
 
-	c := NewClient(ctx, Backoff{
-		Min:    100 * time.Millisecond,
-		Max:    10 * time.Second,
-		Factor: 2,
-		Jitter: false,
-	})
+	c := NewClient(
+		ctx,
+		Backoff{
+			Min:    100 * time.Millisecond,
+			Max:    10 * time.Second,
+			Factor: 2,
+			Jitter: false,
+		},
+	)
 
-	resp, err := c.run(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(resp)
+	c.Run(url)
 }
 
-func (c *Client) run(url string) (string, error) {
+func (c *Client) Run(url string) {
 	for {
 		resp, err := http.Get(url)
 		if err != nil {
-			resp.Body.Close()
-			return "", err
+			log.Fatalln(err)
 		}
+		defer resp.Body.Close()
 
 		validate := c.Validate(resp.StatusCode)
 		err = c.Retry(validate)
-		if err == nil {
-			resp.Body.Close()
-			return resp.Status, nil
+
+		switch {
+		case err == nil:
+			fmt.Println(resp.Status)
+		case err == c.ctx.Err():
+			log.Fatalln(errors.New("timeout is reached"))
+		case err.Error() == "fail case, no retrying":
+			log.Fatalln(err)
 		}
+		log.Println("logging error ", err)
 	}
 }
 
@@ -76,6 +81,7 @@ func (c *Client) Retry(input interface{}) error {
 		if err := c.sleep(c.ctx, timeout); err != nil {
 			return err
 		}
+		return errors.New("transient error, trying to reconnect")
 	}
 	return nil
 }
