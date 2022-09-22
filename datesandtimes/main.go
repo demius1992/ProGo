@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -37,10 +38,15 @@ func main() {
 	//for name := range nameChannel {
 	//	Printfln("Read name: %v", name)
 	//}
+
+	//parseDUration()
 }
 
 func parseDUration() {
 	d, err := time.ParseDuration("1h30m")
+
+	s := time.Now().Add(d).Unix()
+	log.Println(s)
 	if err == nil {
 		Printfln("Hours: %v", d.Hours())
 		Printfln("Mins: %v", d.Minutes())
@@ -49,6 +55,7 @@ func parseDUration() {
 	} else {
 		fmt.Println(err.Error())
 	}
+
 }
 
 func parseLocations() {
