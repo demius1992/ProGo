@@ -1,7 +1,8 @@
 package main
 
-type RetryPolicy interface {
+type Retrier interface {
 	Validate(interface{}) Action
+	Retry(interface{}) error
 }
 
 type Action int

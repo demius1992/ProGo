@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+//var url = "http://localhost:8090/hello"
+var url = "https://fixer.io/"
+
 type Client struct {
 	ctx     context.Context
 	backoff Backoff
@@ -22,28 +25,16 @@ func NewClient(ctx context.Context, backoff Backoff) *Client {
 }
 
 func main() {
-	//url := "https://fixer.io/"
-	url := "http://localhost:8090/hello"
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	c := NewClient(
-		ctx,
-		Backoff{
-			Min:    100 * time.Millisecond,
-			Max:    10 * time.Second,
-			Factor: 2,
-			Jitter: false,
-		},
-	)
-
-	c.Run(url)
+	c := NewClient(ctx, Backoff{Min: 100 * time.Millisecond, Max: 10 * time.Second, Factor: 2, Jitter: false})
+	Run(c)
 
 	fmt.Println("shutting down")
 }
 
-func (c *Client) Run(url string) {
+func Run(retrier Retrier) {
 	for {
 		resp, err := http.Get(url)
 		if err != nil {
@@ -51,19 +42,18 @@ func (c *Client) Run(url string) {
 		}
 		defer resp.Body.Close()
 
-		validate := c.Validate(resp.StatusCode)
-		err = c.Retry(validate)
+		validate := retrier.Validate(resp.StatusCode)
+		err = retrier.Retry(validate)
 
 		switch {
 		case err == nil:
 			fmt.Println(resp.Status)
 			return
-		case err == c.ctx.Err():
-			log.Fatalln(errors.New("timeout is reached"))
 		case err.Error() == "fail case, no retrying":
 			log.Fatalln(err)
+		default:
+			log.Fatalln(errors.New("timeout is reached"))
 		}
-		log.Println("logging error ", err)
 	}
 }
 
@@ -105,6 +95,7 @@ func (c *Client) Validate(resp interface{}) Action {
 		log.Println("invalid status code")
 		return Fail
 	}
+
 	switch {
 	case res >= 200 && res <= 226:
 		return Succeed
