@@ -17,14 +17,15 @@ type Client struct {
 func NewClient(ctx context.Context, backoff Backoff) *Client {
 	return &Client{
 		ctx:     ctx,
-		backoff: backoff}
+		backoff: backoff,
+	}
 }
 
 func main() {
 	//url := "https://fixer.io/"
 	url := "http://localhost:8090/hello"
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	c := NewClient(
@@ -38,6 +39,8 @@ func main() {
 	)
 
 	c.Run(url)
+
+	fmt.Println("shutting down")
 }
 
 func (c *Client) Run(url string) {
@@ -54,6 +57,7 @@ func (c *Client) Run(url string) {
 		switch {
 		case err == nil:
 			fmt.Println(resp.Status)
+			return
 		case err == c.ctx.Err():
 			log.Fatalln(errors.New("timeout is reached"))
 		case err.Error() == "fail case, no retrying":
