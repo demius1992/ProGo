@@ -24,9 +24,10 @@ func (g Gender) parseGender(str string) (Gender, error) {
 }
 
 func main() {
+
 	gender, err := female.parseGender("male")
 
-	var custom *customError = &customError{
+	var custom = &customError{
 		Msg:    "wrong gender",
 		Gender: "female",
 	}

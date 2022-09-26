@@ -16,8 +16,14 @@ func LoadConfig() (err error) {
 	file, err := os.Open("files/config.json")
 	if err == nil {
 		defer file.Close()
+
+		nameSlice := make([]byte, 5)
+		file.ReadAt(nameSlice, 20)
+		Config.UserName = string(nameSlice)
+
+		file.Seek(55, 0)
 		decoder := json.NewDecoder(file)
-		err = decoder.Decode(&Config)
+		err = decoder.Decode(&Config.AdditionalProducts)
 	}
 	return
 }
